@@ -1,0 +1,87 @@
+.type-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.type-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+
+.type-btn.expense.active {
+  background: rgba(255, 59, 48, 0.12);
+  color: var(--expense);
+  border-color: var(--expense);
+}
+
+.type-btn.income.active {
+  background: rgba(52, 199, 89, 0.12);
+  color: var(--income);
+  border-color: var(--income);
+}
+
+.amount-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.amount-input {
+  flex: 1;
+  font-size: 28px !important;
+  font-weight: 700;
+  padding: 12px 14px !important;
+  text-align: center;
+}
+
+.currency-badge {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.date-row {
+  display: flex;
+  gap: 8px;
+}
+
+.date-row .input-field {
+  flex: 1;
+}
+
+.date-shortcut {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.date-shortcut:hover {
+  background: var(--border);
+}
