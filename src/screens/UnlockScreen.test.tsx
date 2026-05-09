@@ -63,6 +63,19 @@ describe("UnlockScreen", () => {
     expect(screen.getByRole("button")).toContainHTML("spinner");
   });
 
+  it("does not show email indicator when email prop is absent", () => {
+    render(<UnlockScreen {...defaultProps} />);
+    expect(screen.queryByText(/signed in as/i)).not.toBeInTheDocument();
+  });
+
+  it("shows signed-in email when email prop is provided", () => {
+    render(<UnlockScreen {...defaultProps} email="user@example.com" />);
+    expect(screen.getByText(/signed in as/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/user@example\.com/i),
+    ).toBeInTheDocument();
+  });
+
   it("does not submit if password is empty (button disabled)", () => {
     const onUnlock = vi.fn();
     render(<UnlockScreen onUnlock={onUnlock} error="" />);

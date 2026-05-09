@@ -78,6 +78,21 @@ describe("LoginScreen", () => {
     expect(screen.getByRole("button")).toContainHTML("spinner");
   });
 
+  it("has name=\"password\" attribute on password input for password manager detection", () => {
+    render(<LoginScreen {...defaultProps} />);
+    expect(
+      screen.getByPlaceholderText("Supabase password"),
+    ).toHaveAttribute("name", "password");
+  });
+
+  it("has name=\"email\" attribute on email input for password manager detection", () => {
+    render(<LoginScreen {...defaultProps} />);
+    expect(screen.getByPlaceholderText("you@example.com")).toHaveAttribute(
+      "name",
+      "email",
+    );
+  });
+
   it("does not submit if email is empty (button disabled)", () => {
     const onLogin = vi.fn();
     render(<LoginScreen onLogin={onLogin} error="" />);

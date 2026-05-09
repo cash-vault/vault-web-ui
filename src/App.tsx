@@ -1,5 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { supabase } from "./supabase";
+import { useSession } from "./useSession";
 import { deriveEncryptionKey } from "./crypto";
 import LoginScreen from "./screens/LoginScreen";
 import UnlockScreen from "./screens/UnlockScreen";
@@ -7,12 +9,19 @@ import AddTransactionScreen from "./screens/AddTransactionScreen";
 import ConfirmationScreen from "./screens/ConfirmationScreen";
 import "./App.css";
 
-type Step = "login" | "unlock" | "add" | "confirmation";
+type Step = "loading" | "login" | "unlock" | "add" | "confirmation";
 
 export default function App() {
-  const [step, setStep] = useState<Step>("login");
+  const { session, loading } = useSession();
+  const [step, setStep] = useState<Step>("loading");
   const [vaultKey, setVaultKey] = useState<Uint8Array | null>(null);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (loading) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setStep(session ? "unlock" : "login");
+  }, [loading, session]);
 
   const handleLogin = useCallback(async (email: string, password: string) => {
     setError("");
@@ -56,11 +65,23 @@ export default function App() {
 
   return (
     <div className="app animate-in">
+      {step === "loading" && (
+        <div className="card glass animate-in">
+          <div className="card-header">
+            <Loader2 className="spinner" size={28} />
+            <p>Checking session...</p>
+          </div>
+        </div>
+      )}
       {step === "login" && (
         <LoginScreen onLogin={handleLogin} error={error} />
       )}
       {step === "unlock" && (
-        <UnlockScreen onUnlock={handleUnlock} error={error} />
+        <UnlockScreen
+          email={session?.user?.email ?? undefined}
+          onUnlock={handleUnlock}
+          error={error}
+        />
       )}
       {step === "add" && vaultKey && (
         <AddTransactionScreen

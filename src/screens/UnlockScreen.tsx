@@ -5,9 +5,10 @@ import "./UnlockScreen.css";
 interface UnlockScreenProps {
   onUnlock: (masterPassword: string) => Promise<void>;
   error: string;
+  email?: string;
 }
 
-export default function UnlockScreen({ onUnlock, error }: UnlockScreenProps) {
+export default function UnlockScreen({ onUnlock, error, email }: UnlockScreenProps) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -30,6 +31,7 @@ export default function UnlockScreen({ onUnlock, error }: UnlockScreenProps) {
         </div>
         <h1>Unlock Vault</h1>
         <p>Enter your master password to decrypt data</p>
+        {email && <p className="email-indicator">Signed in as {email}</p>}
       </div>
 
       <div className="form-group">

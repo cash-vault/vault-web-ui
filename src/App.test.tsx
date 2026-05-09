@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 
@@ -6,6 +6,8 @@ vi.mock("./supabase", () => ({
   supabase: {
     auth: {
       signInWithPassword: vi.fn(),
+      getSession: vi.fn(),
+      onAuthStateChange: vi.fn(),
     },
     from: vi.fn(),
     rpc: vi.fn(),
@@ -58,12 +60,71 @@ const { deriveEncryptionKey } = await import("./crypto");
 describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+      data: { session: null },
+    } as never);
+    vi.mocked(supabase.auth.onAuthStateChange).mockReturnValue({
+      data: { subscription: { unsubscribe: vi.fn() } },
+    } as never);
   });
 
-  it("starts on the login screen", async () => {
+  it("shows loading state while checking session", async () => {
+    vi.mocked(supabase.auth.getSession).mockReturnValue(
+      new Promise(() => {}),
+    );
+
     const App = (await import("./App")).default;
     render(<App />);
-    expect(screen.getByTestId("login-screen")).toBeInTheDocument();
+
+    expect(screen.getByText("Checking session...")).toBeInTheDocument();
+  });
+
+  it("routes to login when no session exists", async () => {
+    const App = (await import("./App")).default;
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("login-screen")).toBeInTheDocument();
+    });
+  });
+
+  it("routes to unlock when a valid session exists", async () => {
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+      data: { session: { user: { email: "test@example.com" } } },
+    } as never);
+
+    const App = (await import("./App")).default;
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("unlock-screen")).toBeInTheDocument();
+    });
+  });
+
+  it("redirects to login when SIGNED_OUT event fires", async () => {
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+      data: { session: { user: { email: "test@example.com" } } },
+    } as never);
+    let authCallback: ((event: string, session: unknown) => void) | null = null;
+    vi.mocked(supabase.auth.onAuthStateChange).mockImplementation(
+      (cb: (event: string, session: unknown) => void) => {
+        authCallback = cb;
+        return { data: { subscription: { unsubscribe: vi.fn() } } };
+      },
+    );
+
+    const App = (await import("./App")).default;
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("unlock-screen")).toBeInTheDocument();
+    });
+
+    authCallback?.("SIGNED_OUT", null);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("login-screen")).toBeInTheDocument();
+    });
   });
 
   it("transitions to unlock screen on successful login", async () => {
@@ -71,8 +132,12 @@ describe("App", () => {
       data: { user: null, session: null },
       error: null,
     } as never);
+
     const App = (await import("./App")).default;
     render(<App />);
+    await waitFor(() => {
+      expect(screen.getByTestId("login-screen")).toBeInTheDocument();
+    });
     await userEvent.click(screen.getByText("trigger-login"));
     expect(screen.getByTestId("unlock-screen")).toBeInTheDocument();
   });
@@ -82,8 +147,12 @@ describe("App", () => {
       data: { user: null, session: null },
       error: { message: "Invalid credentials" },
     } as never);
+
     const App = (await import("./App")).default;
     render(<App />);
+    await waitFor(() => {
+      expect(screen.getByTestId("login-screen")).toBeInTheDocument();
+    });
     await userEvent.click(screen.getByText("trigger-login"));
     expect(screen.getByTestId("login-error")).toHaveTextContent(
       "Invalid credentials",
@@ -106,8 +175,12 @@ describe("App", () => {
     vi.mocked(deriveEncryptionKey).mockResolvedValue(
       new Uint8Array(32),
     );
+
     const App = (await import("./App")).default;
     render(<App />);
+    await waitFor(() => {
+      expect(screen.getByTestId("login-screen")).toBeInTheDocument();
+    });
     await userEvent.click(screen.getByText("trigger-login"));
     await userEvent.click(screen.getByText("trigger-unlock"));
     expect(screen.getByTestId("add-screen")).toBeInTheDocument();
@@ -126,8 +199,12 @@ describe("App", () => {
         }),
       }),
     } as never);
+
     const App = (await import("./App")).default;
     render(<App />);
+    await waitFor(() => {
+      expect(screen.getByTestId("login-screen")).toBeInTheDocument();
+    });
     await userEvent.click(screen.getByText("trigger-login"));
     await userEvent.click(screen.getByText("trigger-unlock"));
     expect(screen.getByTestId("unlock-error")).toHaveTextContent(
@@ -151,8 +228,12 @@ describe("App", () => {
     vi.mocked(deriveEncryptionKey).mockResolvedValue(
       new Uint8Array(32),
     );
+
     const App = (await import("./App")).default;
     render(<App />);
+    await waitFor(() => {
+      expect(screen.getByTestId("login-screen")).toBeInTheDocument();
+    });
     await userEvent.click(screen.getByText("trigger-login"));
     await userEvent.click(screen.getByText("trigger-unlock"));
     await userEvent.click(screen.getByText("trigger-add"));
@@ -175,8 +256,12 @@ describe("App", () => {
     vi.mocked(deriveEncryptionKey).mockResolvedValue(
       new Uint8Array(32),
     );
+
     const App = (await import("./App")).default;
     render(<App />);
+    await waitFor(() => {
+      expect(screen.getByTestId("login-screen")).toBeInTheDocument();
+    });
     await userEvent.click(screen.getByText("trigger-login"));
     await userEvent.click(screen.getByText("trigger-unlock"));
     await userEvent.click(screen.getByText("trigger-add"));

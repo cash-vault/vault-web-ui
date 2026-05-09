@@ -37,6 +37,7 @@ export default function LoginScreen({ onLogin, error }: LoginScreenProps) {
         <label>Email</label>
         <input
           type="email"
+          name="email"
           className="input-field"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -51,6 +52,7 @@ export default function LoginScreen({ onLogin, error }: LoginScreenProps) {
         <label>Password</label>
         <input
           type="password"
+          name="password"
           className="input-field"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
