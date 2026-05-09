@@ -105,12 +105,14 @@ describe("App", () => {
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
       data: { session: { user: { email: "test@example.com" } } },
     } as never);
-    let authCallback: ((event: string, session: unknown) => void) | null = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let authCallback: any = null;
     vi.mocked(supabase.auth.onAuthStateChange).mockImplementation(
-      (cb: (event: string, session: unknown) => void) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ((cb: any) => {
         authCallback = cb;
         return { data: { subscription: { unsubscribe: vi.fn() } } };
-      },
+      }) as never,
     );
 
     const App = (await import("./App")).default;
